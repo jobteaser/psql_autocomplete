@@ -1,5 +1,8 @@
 # PsqlAutocomplete
 
+[![Build Status](https://travis-ci.org/jobteaser/psql_autocomplete.svg?branch=master)](https://travis-ci.org/jobteaser/psql_autocomplete)
+[![Code Climate](https://codeclimate.com/github/jobteaser/psql_autocomplete/badges/gpa.svg)](https://codeclimate.com/github/jobteaser/psql_autocomplete)
+
 This gem introduces a mixin allowing you to run autocomplete queries with the PostgreSQL full text search
 
 It runs a prefix autocomplete on one or multiple fields of your model
