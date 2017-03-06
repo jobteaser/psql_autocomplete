@@ -21,7 +21,7 @@ describe PsqlAutocomplete do
 
     it 'generate autocomplete queries' do
       expect(ModelDouble.autocomplete_query('query', [:title, :body])).to eq(
-        %{to_tsvector('simple', coalesce(title,'') || ' ' || coalesce(body,'')) @@ ["to_tsquery('simple', ?)", "query:*"]}
+        %{(coalesce(title,'') || ' ' || coalesce(body,''))::tsvector @@ $$'query':*$$::tsquery}
       )
     end
 

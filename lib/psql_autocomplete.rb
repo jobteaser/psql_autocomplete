@@ -5,7 +5,7 @@ require 'psql_autocomplete/version'
 module PsqlAutocomplete
   # Returns a postgres FTS query injectable in a where clause
   def autocomplete_query(sentence, fields)
-    "to_tsvector('simple', #{tsvector(fields)}) @@ #{tsquery(sentence)}"
+    "(#{tsvector(fields)})::tsvector @@ $$#{tsquery(sentence)}$$::tsquery"
   end
 
   private
@@ -15,7 +15,11 @@ module PsqlAutocomplete
   end
 
   def tsquery(sentence)
-    words = sentence.split(' ').map(&:strip).compact.map { |q| "#{q}:*" }.join(' & ')
-    sanitize_sql_array ["to_tsquery('simple', ?)", words]
+    sentence.
+      split(' ').
+      map(&:strip).
+      compact.
+      map { |q| "'#{q}':*" }.
+      join(' & ')
   end
 end
