@@ -11,15 +11,16 @@ module PsqlAutocomplete
   private
 
   def tsvector(fields)
-    fields.map { |field| "coalesce(#{field},'')" }.join(" || ' ' || ")
+    fields.map { |field| "coalesce(lower(#{field}),'')" }.join(" || ' ' || ")
   end
 
   def tsquery(sentence)
     sentence.
+      downcase.
       split(' ').
       map(&:strip).
       compact.
-      map { |q| "'#{q}':*" }.
+      map { |q| "'#{q.gsub("'", "''")}':*" }.
       join(' & ')
   end
 end

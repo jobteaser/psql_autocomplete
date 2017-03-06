@@ -1,29 +1,44 @@
 require 'spec_helper'
 
-describe PsqlAutocomplete do
+RSpec.describe PsqlAutocomplete do
   it 'has a version number' do
-    expect(PsqlAutocomplete::VERSION).not_to be nil
+    expect(PsqlAutocomplete::VERSION).not_to be_nil
   end
 
-  context 'mixin' do
+  # Mock model
+  class ModelDouble
+    extend PsqlAutocomplete
+  end
 
-    # Mock model
-    class ModelDouble
+  describe '.autocomplete_query' do
+    it 'generate an autocomplete queries' do
+      input = 'Foo & baR', [:Title, :boDy]
 
-      extend PsqlAutocomplete
+      tsvector = "(coalesce(lower(Title),'') || ' ' || coalesce(lower(boDy),''))::tsvector"
+      tsquery = "$$'foo':* & '&':* & 'bar':*$$::tsquery"
 
-      # Expected sanitization pass
-      def self.sanitize_sql_array(fields)
-        fields
-      end
-
+      expect(ModelDouble.autocomplete_query(*input)).
+        to eq("#{tsvector} @@ #{tsquery}")
     end
 
-    it 'generate autocomplete queries' do
-      expect(ModelDouble.autocomplete_query('query', [:title, :body])).to eq(
-        %{(coalesce(title,'') || ' ' || coalesce(body,''))::tsvector @@ $$'query':*$$::tsquery}
-      )
+    it 'handles apostrophe' do
+      input = "L'Oréal", [:Title, :boDy]
+
+      tsvector = "(coalesce(lower(Title),'') || ' ' || coalesce(lower(boDy),''))::tsvector"
+      tsquery = "$$'l''oréal':*$$::tsquery"
+
+      expect(ModelDouble.autocomplete_query(*input)).
+        to eq("#{tsvector} @@ #{tsquery}")
     end
 
+    it 'handles commas' do
+      input = 'foo ) (bar', [:Title, :boDy]
+
+      tsvector = "(coalesce(lower(Title),'') || ' ' || coalesce(lower(boDy),''))::tsvector"
+      tsquery = "$$'foo':* & ')':* & '(bar':*$$::tsquery"
+
+      expect(ModelDouble.autocomplete_query(*input)).
+        to eq("#{tsvector} @@ #{tsquery}")
+    end
   end
 end
