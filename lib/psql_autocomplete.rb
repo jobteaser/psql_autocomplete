@@ -11,7 +11,11 @@ module PsqlAutocomplete
   private
 
   def tsvector(fields)
-    fields.map { |field| "coalesce(lower(#{field}),'')" }.join(" || ' ' || ")
+    fields.map(&method(:sql_sanitize_column)).join(" || ' ' || ")
+  end
+
+  def sql_sanitize_column(field)
+    "coalesce(lower(regexp_replace(#{field}, '[:'']', '', 'g')), '')"
   end
 
   def tsquery(sentence)
