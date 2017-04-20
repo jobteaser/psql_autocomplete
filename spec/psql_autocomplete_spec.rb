@@ -5,7 +5,6 @@ RSpec.describe PsqlAutocomplete do
     expect(PsqlAutocomplete::VERSION).not_to be_nil
   end
 
-  # Mock model
   class ModelDouble
     extend PsqlAutocomplete
   end
@@ -36,6 +35,16 @@ RSpec.describe PsqlAutocomplete do
 
       tsvector = "(coalesce(lower(regexp_replace(Title, '[:'']', '', 'g')), '') || ' ' || coalesce(lower(regexp_replace(boDy, '[:'']', '', 'g')), ''))::tsvector"
       tsquery = "$$'foo':* & ')':* & '(bar':*$$::tsquery"
+
+      expect(ModelDouble.autocomplete_query(*input)).
+        to eq("#{tsvector} @@ #{tsquery}")
+    end
+
+    it 'handles unaccent' do
+      input = ['Foo & baR', [:Title, :boDy], unaccent: true]
+
+      tsvector = "(unaccent(coalesce(lower(regexp_replace(Title, '[:'']', '', 'g')), '')) || ' ' || unaccent(coalesce(lower(regexp_replace(boDy, '[:'']', '', 'g')), '')))::tsvector"
+      tsquery = "unaccent($$'foo':* & '&':* & 'bar':*$$)::tsquery"
 
       expect(ModelDouble.autocomplete_query(*input)).
         to eq("#{tsvector} @@ #{tsquery}")
