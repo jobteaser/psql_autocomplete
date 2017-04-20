@@ -31,8 +31,13 @@ class Contact < ActiveRecord::Base
   extend PsqlAutocomplete
 end
 
-# > Contact.autocomplete_query('John', [:first_name, :last_name])
-# => "to_tsvector('simple', coalesce(first_name,'') || ' ' || coalesce(last_name,'')) @@ to_tsquery('simple', 'John:*')"
+Contact.autocomplete_query('John', [:first_name, :last_name])
+# => "(coalesce(lower(regexp_replace(first_name, '[:'']', '', 'g')), '') || ' ' || coalesce(lower(regexp_replace(last_name, '[:'']', '', 'g')), ''))::tsvector @@ $$'john':*$$::tsquery"
+
+Contact.autocomplete_query('John', [:first_name, :last_name], unaccent: true)
+# => => "(unaccent(coalesce(lower(regexp_replace(first_name, '[:'']', '', 'g')), '')) || ' ' || unaccent(coalesce(lower(regexp_replace(last_name, '[:'']', '', 'g')), '')))::tsvector @@ unaccent($$'john':*$$)::tsquery"
+
+# You will need to `create extension unaccent` for this option to work
 
 # Actual search
 class Contact < ActiveRecord::Base
@@ -43,7 +48,7 @@ class Contact < ActiveRecord::Base
   end
 end
 
-# > Contact.autocomplete('Jules')
+Contact.autocomplete('Jules')
 # => [#<Contact:0x0x007fd2be761220>, #<Contact:0x007fd2be760938>, ...]
 ```
 
