@@ -17,11 +17,8 @@ module PsqlAutocomplete
   end
 
   def sql_sanitize_column(unaccent, field)
-    res = "coalesce(lower(regexp_replace(#{field}, '[:'']', '', 'g')), '')"
-
-    return res unless unaccent
-
-    "unaccent(#{res})"
+    value = unaccent ? "unaccent(#{field})" : field
+    "coalesce(lower(regexp_replace(#{value}, '[:'']', '', 'g')), '')"
   end
 
   def tsquery(sentence, unaccent)
