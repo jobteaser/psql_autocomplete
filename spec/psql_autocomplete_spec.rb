@@ -43,7 +43,7 @@ RSpec.describe PsqlAutocomplete do
     it 'handles unaccent' do
       input = ['Foo & baR', [:Title, :boDy], unaccent: true]
 
-      tsvector = "(unaccent(coalesce(lower(regexp_replace(Title, '[:'']', '', 'g')), '')) || ' ' || unaccent(coalesce(lower(regexp_replace(boDy, '[:'']', '', 'g')), '')))::tsvector"
+      tsvector = "(coalesce(lower(regexp_replace(unaccent(Title), '[:'']', '', 'g')), '') || ' ' || coalesce(lower(regexp_replace(unaccent(boDy), '[:'']', '', 'g')), ''))::tsvector"
       tsquery = "unaccent($$'foo':* & '&':* & 'bar':*$$)::tsquery"
 
       expect(ModelDouble.autocomplete_query(*input)).
