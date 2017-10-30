@@ -13,7 +13,7 @@ RSpec.describe PsqlAutocomplete do
     it 'generate an autocomplete queries' do
       input = 'Foo & baR', [:Title, :boDy]
 
-      tsvector = "(coalesce(lower(regexp_replace(Title, '[:'']', '', 'g')), '') || ' ' || coalesce(lower(regexp_replace(boDy, '[:'']', '', 'g')), ''))::tsvector"
+      tsvector = "(coalesce(lower(regexp_replace(Title, '[:''’]', '', 'g')), '') || ' ' || coalesce(lower(regexp_replace(boDy, '[:''’]', '', 'g')), ''))::tsvector"
       tsquery = "$$'foo':* & '&':* & 'bar':*$$::tsquery"
 
       expect(ModelDouble.autocomplete_query(*input)).
@@ -23,7 +23,17 @@ RSpec.describe PsqlAutocomplete do
     it 'handles apostrophe' do
       input = "L'Oréal", [:Title, :boDy]
 
-      tsvector = "(coalesce(lower(regexp_replace(Title, '[:'']', '', 'g')), '') || ' ' || coalesce(lower(regexp_replace(boDy, '[:'']', '', 'g')), ''))::tsvector"
+      tsvector = "(coalesce(lower(regexp_replace(Title, '[:''’]', '', 'g')), '') || ' ' || coalesce(lower(regexp_replace(boDy, '[:''’]', '', 'g')), ''))::tsvector"
+      tsquery = "$$'l''oréal':*$$::tsquery"
+
+      expect(ModelDouble.autocomplete_query(*input)).
+        to eq("#{tsvector} @@ #{tsquery}")
+    end
+
+    it 'handles typographical apostrophe' do
+      input = 'L’Oréal', [:Title, :boDy]
+
+      tsvector = "(coalesce(lower(regexp_replace(Title, '[:''’]', '', 'g')), '') || ' ' || coalesce(lower(regexp_replace(boDy, '[:''’]', '', 'g')), ''))::tsvector"
       tsquery = "$$'l''oréal':*$$::tsquery"
 
       expect(ModelDouble.autocomplete_query(*input)).
@@ -33,7 +43,7 @@ RSpec.describe PsqlAutocomplete do
     it 'handles commas' do
       input = 'foo ) (bar', [:Title, :boDy]
 
-      tsvector = "(coalesce(lower(regexp_replace(Title, '[:'']', '', 'g')), '') || ' ' || coalesce(lower(regexp_replace(boDy, '[:'']', '', 'g')), ''))::tsvector"
+      tsvector = "(coalesce(lower(regexp_replace(Title, '[:''’]', '', 'g')), '') || ' ' || coalesce(lower(regexp_replace(boDy, '[:''’]', '', 'g')), ''))::tsvector"
       tsquery = "$$'foo':* & ')':* & '(bar':*$$::tsquery"
 
       expect(ModelDouble.autocomplete_query(*input)).
@@ -43,7 +53,7 @@ RSpec.describe PsqlAutocomplete do
     it 'handles unaccent' do
       input = ['Foo & baR', [:Title, :boDy], unaccent: true]
 
-      tsvector = "(coalesce(lower(regexp_replace(unaccent(Title), '[:'']', '', 'g')), '') || ' ' || coalesce(lower(regexp_replace(unaccent(boDy), '[:'']', '', 'g')), ''))::tsvector"
+      tsvector = "(coalesce(lower(regexp_replace(unaccent(Title), '[:''’]', '', 'g')), '') || ' ' || coalesce(lower(regexp_replace(unaccent(boDy), '[:''’]', '', 'g')), ''))::tsvector"
       tsquery = "unaccent($$'foo':* & '&':* & 'bar':*$$)::tsquery"
 
       expect(ModelDouble.autocomplete_query(*input)).

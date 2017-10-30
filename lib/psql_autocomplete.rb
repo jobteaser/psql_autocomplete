@@ -17,8 +17,8 @@ module PsqlAutocomplete
   end
 
   def sql_sanitize_column(unaccent, field)
-    value = unaccent ? "unaccent(#{field})" : field
-    "coalesce(lower(regexp_replace(#{value}, '[:'']', '', 'g')), '')"
+    column = unaccent ? "unaccent(#{field})" : field
+    "coalesce(lower(regexp_replace(#{column}, '[:''’]', '', 'g')), '')"
   end
 
   def tsquery(sentence, unaccent)
@@ -27,7 +27,7 @@ module PsqlAutocomplete
       split(' ').
       map(&:strip).
       compact.
-      map { |q| "'#{q.gsub("'", "''")}':*" }.
+      map { |q| "'#{q.gsub(/['’]/, "''")}':*" }.
       join(' & ')
 
     query = "$$#{query}$$"
